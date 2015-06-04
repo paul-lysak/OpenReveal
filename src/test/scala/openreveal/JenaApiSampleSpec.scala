@@ -7,15 +7,14 @@ import com.hp.hpl.jena.vocabulary.RDF
 import openreveal.schema.OpenRevealSchema
 import openreveal.service.DefaultClock
 import openreveal.service.impl.JenaFactStorage
-import org.specs2.mutable.Specification
+import org.scalatest.FlatSpec
 
 /**
  * Created by Paul Lysak on 02.06.15.
  *
  * Sample spec for exploring Jena API
  */
-class JenaApiSampleSpec extends Specification {
-  sequential
+class JenaApiSampleSpec extends FlatSpec {
   val sampleData =
     """
       |@base <http://openreveal.org/data/> .
@@ -25,22 +24,19 @@ class JenaApiSampleSpec extends Specification {
       | ore:email "scribe1@a.b.com" .
     """.stripMargin
 
-  "FactStorage" should {
-    "create user" in {
-      val model = ModelFactory.createDefaultModel();
-      val sampleReader = new StringReader(sampleData)
-      model.read(sampleReader, "", "TURTLE")
+  "FactStorage" should "create user" in {
+    val model = ModelFactory.createDefaultModel();
+    val sampleReader = new StringReader(sampleData)
+    model.read(sampleReader, "", "TURTLE")
 
-      val scribe1Resource = model.getResource(Constants.URI_PREFIX + "scribe1")
-      val propsS1 = scribe1Resource.listProperties().toList
-      val s1Type = scribe1Resource.getProperty(RDF.`type`)
-      val s1Email = scribe1Resource.getProperty(OpenRevealSchema.User.email)
+    val scribe1Resource = model.getResource(Constants.URI_PREFIX + "scribe1")
+    val propsS1 = scribe1Resource.listProperties().toList
+    val s1Type = scribe1Resource.getProperty(RDF.`type`)
+    val s1Email = scribe1Resource.getProperty(OpenRevealSchema.User.email)
 
-      println(s"scribe1: props=$propsS1, type=$s1Type, email=$s1Email")
+    println(s"scribe1: props=$propsS1, type=$s1Type, email=$s1Email")
 
-      s1Type.getObject === OpenRevealSchema.User.a
-      s1Email.getLiteral.toString === "scribe1@a.b.com"
-    }
+    s1Type.getObject === OpenRevealSchema.User.a
+    s1Email.getLiteral.toString === "scribe1@a.b.com"
   }
-
 }
