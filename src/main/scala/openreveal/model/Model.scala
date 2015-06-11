@@ -30,15 +30,16 @@ trait Company extends Organization with Property
 
 
 case class User(id: String, email: String) extends Entity {
-  val name = email
+  val name = id
 }
 
 case class PoliticalParty(id: String, name: String, registeredInCountry: String) extends Organization
 
 case class Person(id: String,
-                  name: String,
-                  citizenOf: Seq[Country],
-                  livesIn: Option[Country]) extends Owner
+                  name: String) extends Owner
+//TODO represent following properties as a fact
+//                  citizenOf: Seq[Country],
+//                  livesIn: Option[Country]) extends Owner
 
 case class TradeMark(id: String,
                      name: String,

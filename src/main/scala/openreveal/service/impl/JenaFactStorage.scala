@@ -20,10 +20,11 @@ class JenaFactStorage(rdfModelProvider: RdfModelProvider, val clock: Clock) exte
     rdfModelProvider.writeWithModel(factToResource(_, fact))
   }
 
-  override def defineEntity[T <: Entity](entityDef: EntityDefinition[T]): T = {
+  override def defineEntity[T <: Entity](entityDef: EntityDefinition[T], reporterUser: User): T = {
     rdfModelProvider.writeWithModel({rdfModel =>
       val res = entityToResource(rdfModel, entityDef.entity)
-      res.addProperty(OpenRevealSchema.Entity.reporter, res)
+      val reporter = rdfModel.getResource(reporterUser.id)
+      res.addProperty(OpenRevealSchema.Entity.reporter, reporter)
       res.addLiteral(OpenRevealSchema.Entity.reportedAt, clock.nowIsoString())
       entityDef.entity
     })
@@ -40,16 +41,24 @@ class JenaFactStorage(rdfModelProvider: RdfModelProvider, val clock: Clock) exte
   }
 
   private def entityToResource(rdfModel: Model, entity: Entity) = {
-    entity match {
+    val res = entity match {
       case User(id, email) =>
         val res = rdfModel.createResource(id, OpenRevealSchema.User.a)
         res.addProperty(OpenRevealSchema.User.email, email)
-      case PoliticalParty(id, name, country) =>
-        val res = rdfModel.createResource(id, OpenRevealSchema.PoliticalParty.a)
-        res.addProperty(OpenRevealSchema.PoliticalParty.name, name)
-        res.addProperty(OpenRevealSchema.PoliticalParty.registeredInCountry, country)
+      case PoliticalParty(id, name, country) => rdfModel.createResource(id, OpenRevealSchema.PoliticalParty.a)
+      case Person(id, _) => rdfModel.createResource(id, OpenRevealSchema.Person.a)
+      case GenericCompany(id, _, _) => rdfModel.createResource(id, OpenRevealSchema.GenericCompany.a)
+      case TradeMark(id, _, _) => rdfModel.createResource(id, OpenRevealSchema.TradeMark.a)
       case _ => throw new ValidationException(s"Entity not supported at the moment: $entity")
     }
+
+    entity match {
+      case r: Registrable =>
+        res.addProperty(OpenRevealSchema.Registrable.registeredInCountry, r.registeredInCountry)
+      case _ => //no additional checks
+    }
+
+    res.addProperty(OpenRevealSchema.Entity.name, entity.name)
   }
 }
 

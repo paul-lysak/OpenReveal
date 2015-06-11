@@ -9,13 +9,13 @@ import org.joda.time.DateTime
 trait FactStorage {
   def saveFact(fact: Fact)
 
-  def defineEntity[T <: Entity](entityDef: EntityDefinition[T]): T
+  def defineEntity[T <: Entity](entityDef: EntityDefinition[T], reporterUser: User): T
 
   def generateFactId(): String
 
   def createUser(id: String, email: String): User = {
     val user = User(id, email)
-    defineEntity(EntityDefinition(reporter = user, reportedAt = clock.now(), entity = user))
+    defineEntity(EntityDefinition(reporter = user, reportedAt = clock.now(), entity = user), user)
   }
 
   val clock: Clock

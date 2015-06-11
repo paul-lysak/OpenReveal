@@ -27,10 +27,24 @@ object OpenRevealSchema {
     val registeredInCountry = m.createProperty(uri, "registeredInCountry")
   }
 
+  object Registrable extends RegistrableT
+
   object PoliticalParty extends RegistrableT {
     val a = m.createResource(uri + "PoliticalParty")
   }
 
+  object GenericCompany extends RegistrableT {
+    val a = m.createResource(uri + "GenericCompany")
+  }
+
+  object TradeMark extends RegistrableT {
+    val a = m.createResource(uri + "TradeMark")
+  }
+
+
+  object Person extends EntityT {
+    val a = m.createResource(uri + "Person")
+  }
 
 
 }

@@ -2,54 +2,45 @@ package openreveal.service
 
 import com.hp.hpl.jena.rdf.model.{Resource, Model}
 import com.hp.hpl.jena.vocabulary.RDF
-import openreveal.model.{PoliticalParty, EntityDefinition, User}
+import openreveal.model._
 import openreveal.rdf.RdfInMemoryModelProvider
 import openreveal.schema.OpenRevealSchema
 import openreveal.service.impl.JenaFactStorage
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
-import org.scalatest.FlatSpec
+import org.scalatest.{Matchers, FlatSpec}
 
 /**
  * Created by Paul Lysak on 02.06.15.
  */
-class FactStorageSpec extends FlatSpec {
+class FactStorageSpec extends FlatSpec with Matchers {
+  val s = OpenRevealSchema
+
   "FactStorage" should "create user" in {
     val TestEnv(_, model) = createEnv()
 
     val user1Resource = getUserRes(model)
 
-    user1Resource.getRequiredProperty(RDF.`type`).getObject === OpenRevealSchema.User.a
-    user1Resource.getRequiredProperty(OpenRevealSchema.User.email).getLiteral.getString === "user1@a.b.com"
-    user1Resource.getRequiredProperty(OpenRevealSchema.Entity.reporter).getObject === user1Resource
-    user1Resource.getRequiredProperty(OpenRevealSchema.Entity.reportedAt).getLiteral.getString === sampleDateTimeStr
+    user1Resource.getRequiredProperty(RDF.`type`).getObject === s.User.a
+    user1Resource.getRequiredProperty(s.User.email).getLiteral.getString === "user1@a.b.com"
+    user1Resource.getRequiredProperty(s.Entity.reporter).getObject === user1Resource
+    user1Resource.getRequiredProperty(s.Entity.reportedAt).getLiteral.getString === sampleDateTimeStr
   }
 
   it should "create party" in {
-    val TestEnv(storage, model) = createEnv()
-    storage.defineEntity(EntityDefinition(SAMPLE_USER, fixedClock.now(),
-      PoliticalParty("Imperial_Party", "Imperial Party", "Tatouine")))
-
-    val user1Resource = model.getResource(SAMPLE_USER.id)
-
-    val partyRes = model.getResource("Imperial_Party")
-    partyRes.getRequiredProperty(RDF.`type`).getObject === OpenRevealSchema.User.a
-    partyRes.getRequiredProperty(OpenRevealSchema.Entity.name).getLiteral.getString === "Imperial Party"
-    partyRes.getRequiredProperty(OpenRevealSchema.PoliticalParty.registeredInCountry).getLiteral.getString === "Tatouine"
-    partyRes.getRequiredProperty(OpenRevealSchema.PoliticalParty.reporter).getObject === user1Resource
-    partyRes.getRequiredProperty(OpenRevealSchema.PoliticalParty.reportedAt).getLiteral.getString === sampleDateTimeStr
+    val res = testEntityCreation(PoliticalParty("Imperial_Party", "Imperial Party", "Tatouine"), s.PoliticalParty.a)
   }
 
   it should "create person" in {
-    ???
+    testEntityCreation(Person("Darth_Vader", "Darth Vader"), s.Person.a)
   }
 
   it should "create company" in {
-    ???
+    testEntityCreation(GenericCompany("Death_Star_Inc", "Death Star Inc.", "Tatouine"), s.GenericCompany.a)
   }
 
   it should "create trademark" in {
-    ???
+    testEntityCreation(TradeMark("Battle_Clones", "Battle Clones", "Tatouine"), s.TradeMark.a)
   }
 
   it should "register politican fact" in {
@@ -64,7 +55,27 @@ class FactStorageSpec extends FlatSpec {
     ???
   }
 
-  def createEnv(): TestEnv = {
+  private def testEntityCreation(entity: Entity, expectedType: Resource): Resource = {
+    val TestEnv(storage, model) = createEnv()
+    storage.defineEntity(EntityDefinition(SAMPLE_USER, fixedClock.now(), entity), SAMPLE_USER)
+
+    val res = model.getResource(entity.id)
+
+    res.getRequiredProperty(RDF.`type`).getObject shouldBe expectedType
+    res.getRequiredProperty(s.Entity.name).getLiteral.toString shouldBe entity.name
+    res.getRequiredProperty(s.PoliticalParty.reporter).getObject shouldBe getUserRes(model)
+    res.getRequiredProperty(s.PoliticalParty.reportedAt).getLiteral.getString shouldBe sampleDateTimeStr
+
+    entity match {
+      case r: Registrable =>
+        res.getRequiredProperty(s.Registrable.registeredInCountry).getLiteral.getString shouldBe r.registeredInCountry
+      case _ => //no additional checks
+    }
+
+    res
+  }
+
+  private def createEnv(): TestEnv = {
      val modelProvider = new RdfInMemoryModelProvider()
 
     val storage = new JenaFactStorage(modelProvider, fixedClock)
