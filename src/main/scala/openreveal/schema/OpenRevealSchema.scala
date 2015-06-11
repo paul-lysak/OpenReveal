@@ -10,14 +10,27 @@ object OpenRevealSchema {
 
   private val m = ModelFactory.createDefaultModel()
 
-  object Entity {
+  trait EntityT {
+    val name = m.createProperty(uri, "name")
     val reporter = m.createProperty(uri, "reporter")
     val reportedAt = m.createProperty(uri, "reportedAt")
   }
 
-  object User {
+  object Entity extends EntityT
+
+  object User extends EntityT {
     val a = m.createResource(uri + "User")
     val email = m.createProperty(uri, "email")
   }
+
+  trait RegistrableT extends EntityT {
+    val registeredInCountry = m.createProperty(uri, "registeredInCountry")
+  }
+
+  object PoliticalParty extends RegistrableT {
+    val a = m.createResource(uri + "PoliticalParty")
+  }
+
+
 
 }

@@ -1,6 +1,6 @@
 package openreveal.service
 
-import openreveal.model.{User, EntityDefinitionFact, Fact}
+import openreveal.model._
 import org.joda.time.DateTime
 
 /**
@@ -9,14 +9,13 @@ import org.joda.time.DateTime
 trait FactStorage {
   def saveFact(fact: Fact)
 
+  def defineEntity[T <: Entity](entityDef: EntityDefinition[T]): T
+
   def generateFactId(): String
 
-  def createUser(id: String, email: String) = {
+  def createUser(id: String, email: String): User = {
     val user = User(id, email)
-    saveFact(EntityDefinitionFact(generateFactId(),
-      reporter = user,
-      reportedAt = clock.now(),
-      entity = user))
+    defineEntity(EntityDefinition(reporter = user, reportedAt = clock.now(), entity = user))
   }
 
   val clock: Clock

@@ -14,7 +14,7 @@
 <#scribe3>
     a ore:User .
 
-
+#TODO move part (or maybe all) of properties from fact to entity
 <#Imperial-Party-Of-Galaxy>
     ore:fact [
         a ore:PoliticalPartyFact;
@@ -25,6 +25,7 @@
     ] .
 
 
+#TODO move part of properties from fact to entity
 <#Darth-Vader>
     ore:fact [
         a ore:PoliticanFact;
@@ -50,6 +51,7 @@
     ] .
 
 
+#TODO move part of properties from fact to entity
 <#Death-Star-Inc>
     ore:fact [
         a ore:OwnershipFact;

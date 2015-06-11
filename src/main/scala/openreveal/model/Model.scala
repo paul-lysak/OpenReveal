@@ -64,10 +64,9 @@ trait ArticleFact extends Fact {
   val media: Option[Media]
 }
 
-case class EntityDefinitionFact[T <: Entity](id: String,
-                     reporter: User,
-                     reportedAt: DateTime,
-                     entity: T) extends Fact
+case class EntityDefinition[T <: Entity](reporter: User,
+                                         reportedAt: DateTime,
+                                         entity: T)
 
 case class OwnerFact(id: String,
                      reporter: User,
