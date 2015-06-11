@@ -55,7 +55,7 @@ case class Media(id: String, name: String, registeredInCountry: String) extends 
 
 trait Fact extends Id {
   val id: String
-  val reporter: User
+  val reportedBy: User
   val reportedAt: DateTime
 }
 
@@ -65,12 +65,12 @@ trait ArticleFact extends Fact {
   val media: Option[Media]
 }
 
-case class EntityDefinition[T <: Entity](reporter: User,
+case class EntityDefinition[T <: Entity](reportedBy: User,
                                          reportedAt: DateTime,
                                          entity: T)
 
 case class OwnerFact(id: String,
-                     reporter: User,
+                     reportedBy: User,
                      reportedAt: DateTime,
                      media: Option[Media],
                      articleUrl: String,

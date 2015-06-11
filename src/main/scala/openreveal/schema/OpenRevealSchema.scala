@@ -12,7 +12,7 @@ object OpenRevealSchema {
 
   trait EntityT {
     val name = m.createProperty(uri, "name")
-    val reporter = m.createProperty(uri, "reporter")
+    val reportedBy = m.createProperty(uri, "reportedBy")
     val reportedAt = m.createProperty(uri, "reportedAt")
   }
 
@@ -41,10 +41,8 @@ object OpenRevealSchema {
     val a = m.createResource(uri + "TradeMark")
   }
 
-
   object Person extends EntityT {
     val a = m.createResource(uri + "Person")
   }
-
 
 }

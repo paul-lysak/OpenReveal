@@ -23,7 +23,7 @@ class FactStorageSpec extends FlatSpec with Matchers {
 
     user1Resource.getRequiredProperty(RDF.`type`).getObject === s.User.a
     user1Resource.getRequiredProperty(s.User.email).getLiteral.getString === "user1@a.b.com"
-    user1Resource.getRequiredProperty(s.Entity.reporter).getObject === user1Resource
+    user1Resource.getRequiredProperty(s.Entity.reportedBy).getObject === user1Resource
     user1Resource.getRequiredProperty(s.Entity.reportedAt).getLiteral.getString === sampleDateTimeStr
   }
 
@@ -57,13 +57,13 @@ class FactStorageSpec extends FlatSpec with Matchers {
 
   private def testEntityCreation(entity: Entity, expectedType: Resource): Resource = {
     val TestEnv(storage, model) = createEnv()
-    storage.defineEntity(EntityDefinition(SAMPLE_USER, fixedClock.now(), entity), SAMPLE_USER)
+    storage.defineEntity(EntityDefinition(SAMPLE_USER, fixedClock.now(), entity))
 
     val res = model.getResource(entity.id)
 
     res.getRequiredProperty(RDF.`type`).getObject shouldBe expectedType
     res.getRequiredProperty(s.Entity.name).getLiteral.toString shouldBe entity.name
-    res.getRequiredProperty(s.PoliticalParty.reporter).getObject shouldBe getUserRes(model)
+    res.getRequiredProperty(s.PoliticalParty.reportedBy).getObject shouldBe getUserRes(model)
     res.getRequiredProperty(s.PoliticalParty.reportedAt).getLiteral.getString shouldBe sampleDateTimeStr
 
     entity match {

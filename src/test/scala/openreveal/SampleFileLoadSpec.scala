@@ -7,10 +7,9 @@ import org.scalatest.FlatSpec
 /**
  * Created by Paul Lysak on 30.05.15.
  */
-class SampleSpec extends FlatSpec {
+class SampleFileLoadSpec extends FlatSpec {
 
   "Jena" should "read turtle file" in {
-    println("hi there")
     // create an empty model
     val inputFileName = "src/test/resources/sample_data.turtle"
     val model = ModelFactory.createDefaultModel();

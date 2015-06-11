@@ -1,36 +1,42 @@
 @base <http://openreveal.org/data/> .
 #claim-based
+#may lag a bit behind implementation in code
 
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix ore: <http://openreveal.org/schema/1.0/> .
 
 <#scribe1>
-    a ore:User .
+    a ore:User ;
+    ore:email "scribe1@a.com" .
 
 <#scribe2>
-    a ore:User .
+    a ore:User ;
+    ore:email "scribe2@a.com" .
 
 <#scribe3>
-    a ore:User .
+    a ore:User ;
+    ore:email "scribe3@a.com" .
 
-#TODO move part (or maybe all) of properties from fact to entity
 <#Imperial-Party-Of-Galaxy>
-    ore:fact [
-        a ore:PoliticalPartyFact;
-        ore:factReporter <#scribe1>;
-        ore:factTimestamp "2015-05-29T10:06:00";
-
-        ore:registeredIn <#Tatouine>
-    ] .
+    a ore:PoliticalParty;
+    ore:name "Imperial Party Of Galaxy";
+    ore:reportedBy <#scribe1>;
+    ore:reportedAt "2015-05-29T10:06:00" ;
+    ore:registeredInCountry <#Tatouine> .
 
 
 #TODO move part of properties from fact to entity
 <#Darth-Vader>
+    a ore:Person;
+    ore:name "Darth Vader";
+    ore:reportedBy <#scribe1>;
+    ore:reportedAt "2015-05-29T10:06:00";
+
     ore:fact [
         a ore:PoliticanFact;
-        ore:factReporter <#scribe1>;
-        ore:factTimestamp "2015-05-29T10:06:00";
+        ore:reportedBy <#scribe1>;
+        ore:reportedAt "2015-05-29T10:06:00";
 
         ore:memberOf <#Imperial-Party-Of-Galaxy>;
         ore:memberSince "2014-01-01";
@@ -38,10 +44,15 @@
     ] .
 
 <#Emperor>
+    a ore:Person;
+    ore:name "Emperor";
+    ore:reportedBy <#scribe2>;
+    ore:reportedAt "2015-05-29T10:06:00";
+
     ore:fact [
         a ore:PoliticanFact;
-        ore:factReporter <#scribe2>;
-        ore:factTimestamp "2015-05-29T10:06:00";
+        ore:reportedBy <#scribe2>;
+        ore:reportedAt "2015-05-29T10:06:00";
 
         ore:memberOf <#Imperial-Party-Of-Galaxy>;
         ore:memberSince "2013-01-01";
@@ -51,12 +62,16 @@
     ] .
 
 
-#TODO move part of properties from fact to entity
 <#Death-Star-Inc>
+    a ore:GenericCompany;
+    ore:name "Death Star Inc.";
+    ore:reportedBy <#scribe1>;
+    ore:reportedAt "2015-05-29T10:06:00";
+
     ore:fact [
         a ore:OwnershipFact;
-        ore:factReporter <#scribe1>;
-        ore:factTimestamp "2015-05-29T11:06:00";
+        ore:reportedBy <#scribe1>;
+        ore:reportedAt "2015-05-29T11:06:00";
 
         ore:shareSize "30%";
         ore:ownedBy <#Darth-Vader>
@@ -65,8 +80,8 @@
 <#Death-Star-Inc>
     ore:fact [
         a ore:OwnershipFact;
-        ore:factReporter <#scribe2>;
-        ore:factTimestamp "2015-05-29T11:30:00";
+        ore:reportedBy <#scribe2>;
+        ore:reportedAt "2015-05-29T11:30:00";
 
         a ore:Share;
         ore:shareSize "60%";
@@ -74,10 +89,15 @@
     ].
 
 <#Clones-Factory-Inc>
+    a ore:GenericCompany;
+    ore:name "Clones Factory Inc.";
+    ore:reportedBy <#scribe1>;
+    ore:reportedAt "2015-05-29T10:06:00";
+
     ore:fact [
         a ore:OwnershipFact;
-        ore:factReporter <#scribe1>;
-        ore:factTimestamp "2015-05-29T12:00:00";
+        ore:reportedBy <#scribe1>;
+        ore:reportedAt "2015-05-29T12:00:00";
 
         ore:shareSize "55%";
         ore:ownedBy <#Darth-Vader>;
@@ -85,10 +105,15 @@
     ].
 
 <#Battle-Clone>
+    a ore:TradeMark;
+    ore:name "Battle Clone";
+    ore:reportedBy <#scribe1>;
+    ore:reportedAt "2015-05-29T10:06:00";
+
     ore:fact [
-        a ore:TrademarkFact;
-        ore:factReporter <#scribe1>;
-        ore:factTimestamp "2015-05-29T12:00:00";
+        a ore:TradeMarkFact;
+        ore:reportedBy <#scribe1>;
+        ore:reportedAt "2015-05-29T12:00:00";
 
         ore:ownedBy <#Clones-Factory-Inc>
     ].
@@ -96,3 +121,4 @@
 <#scribe3>
     ore:trusts <#scribe1> ;
     ore:trusts <#scribe2> .
+

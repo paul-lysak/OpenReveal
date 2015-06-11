@@ -20,11 +20,11 @@ class JenaFactStorage(rdfModelProvider: RdfModelProvider, val clock: Clock) exte
     rdfModelProvider.writeWithModel(factToResource(_, fact))
   }
 
-  override def defineEntity[T <: Entity](entityDef: EntityDefinition[T], reporterUser: User): T = {
+  override def defineEntity[T <: Entity](entityDef: EntityDefinition[T]): T = {
     rdfModelProvider.writeWithModel({rdfModel =>
       val res = entityToResource(rdfModel, entityDef.entity)
-      val reporter = rdfModel.getResource(reporterUser.id)
-      res.addProperty(OpenRevealSchema.Entity.reporter, reporter)
+      val reporter = rdfModel.getResource(entityDef.reportedBy.id)
+      res.addProperty(OpenRevealSchema.Entity.reportedBy, reporter)
       res.addLiteral(OpenRevealSchema.Entity.reportedAt, clock.nowIsoString())
       entityDef.entity
     })
