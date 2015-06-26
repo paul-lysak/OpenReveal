@@ -6,7 +6,7 @@ import openreveal.model._
 import openreveal.rdf.RdfInMemoryModelProvider
 import openreveal.schema.OpenRevealSchema
 import openreveal.service.impl.JenaFactStorage
-import org.joda.time.DateTime
+import org.joda.time.{LocalDate, DateTime}
 import org.joda.time.format.ISODateTimeFormat
 import org.scalatest.{Matchers, FlatSpec}
 import scala.collection.JavaConversions._
@@ -62,7 +62,7 @@ class FactStorageSpec extends FlatSpec with Matchers {
       subject = subj,
       citizenOf = Set("UA", "PA"),
       livesIn = Some("UA"))
-    val res = testFactCreation(fact)
+    val res = testFactCreation(fact, s.PersonFact.a)
 
     val actualCitizen = res.getRequiredProperty(s.PersonFact.citizenOf).getBag.iterator().toSet.map(_.asLiteral().getString)
     actualCitizen shouldBe fact.citizenOf
@@ -81,16 +81,59 @@ class FactStorageSpec extends FlatSpec with Matchers {
       subject = subj,
       citizenOf = Set(),
       livesIn = None)
-    val res = testFactCreation(fact)
+    val res = testFactCreation(fact, s.PersonFact.a)
 
     res.hasProperty(s.PersonFact.citizenOf) shouldBe false
     res.hasProperty(s.PersonFact.livesIn) shouldBe false
   }
 
 
-  it should "register member fact" in {
-    ???
+  it should "register member full fact" in {
+    val subj = Person("Darth_Vader", "Darth Vader")
+    val party = PoliticalParty("Imperial", "Imperial Party Of Galaxy", "Tatouine")
+
+    val fact = MemberFact(id = "DV_user1_party",
+      reportedBy = SAMPLE_USER,
+      reportedAt = fixedClock.now(),
+      media = None,
+      articleUrl = "google.com",
+      articlePublishedAt = None,
+      subject = subj,
+      memberOf= party,
+      memberSince = Option(LocalDate.parse("2015-01-01")),
+      position = Some("Vice-president"),
+      positionSince = Some(LocalDate.parse("2015-01-05")) )
+    val res = testFactCreation(fact, s.MemberFact.a)
+
+    res.getRequiredProperty(s.MemberFact.memberOf).getResource.getURI shouldBe party.id
+    res.getRequiredProperty(s.MemberFact.memberSince).getString shouldBe dateStr(fact.memberSince.get)
+    res.getRequiredProperty(s.MemberFact.position).getString shouldBe fact.position.get
+    res.getRequiredProperty(s.MemberFact.positionSince).getString shouldBe dateStr(fact.positionSince.get)
   }
+
+  it should "register member minimal fact" in {
+    val subj = Person("Darth_Vader", "Darth Vader")
+    val party = PoliticalParty("Imperial", "Imperial Party Of Galaxy", "Tatouine")
+
+    val fact = MemberFact(id = "DV_user1_party",
+      reportedBy = SAMPLE_USER,
+      reportedAt = fixedClock.now(),
+      media = None,
+      articleUrl = "google.com",
+      articlePublishedAt = None,
+      subject = subj,
+      memberOf= party,
+      memberSince = None,
+      position = None,
+      positionSince = None )
+    val res = testFactCreation(fact, s.MemberFact.a)
+
+    res.getRequiredProperty(s.MemberFact.memberOf).getResource.getURI shouldBe party.id
+    res.hasProperty(s.MemberFact.memberSince) shouldBe false
+    res.hasProperty(s.MemberFact.position) shouldBe false
+    res.hasProperty(s.MemberFact.positionSince) shouldBe false
+  }
+
 
   it should "register ownership fact" in {
     ???
@@ -120,7 +163,7 @@ class FactStorageSpec extends FlatSpec with Matchers {
     res
   }
 
-  private def testFactCreation(fact: Fact): Resource = {
+  private def testFactCreation(fact: Fact, expectedType: Resource): Resource = {
     val TestEnv(storage, model) = createEnv()
     val entities = Set(fact.subject) ++ fact.media.toSet
 
@@ -129,7 +172,7 @@ class FactStorageSpec extends FlatSpec with Matchers {
     storage.saveFact(fact)
 
     val res = model.getResource(fact.id)
-    res.getRequiredProperty(RDF.`type`).getObject shouldBe s.PersonFact.a
+    res.getRequiredProperty(RDF.`type`).getObject shouldBe expectedType
 
     res.getRequiredProperty(s.Reported.reportedBy).getObject shouldBe getUserRes(model)
     res.getRequiredProperty(s.Reported.reportedAt).getLiteral.getString shouldBe sampleDateTimeStr
@@ -172,4 +215,6 @@ class FactStorageSpec extends FlatSpec with Matchers {
   private val articleDateTimeStr = "2015-06-01T10:00:00.000Z"
 
   private def dateTimeStr(dt: DateTime) = ISODateTimeFormat.dateTime().print(dt)
+
+  private def dateStr(d: LocalDate) = ISODateTimeFormat.date().print(d)
 }

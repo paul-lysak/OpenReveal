@@ -75,8 +75,8 @@ case class PersonFact(id: String,
                      media: Option[Media],
                      articleUrl: String,
                      articlePublishedAt: Option[DateTime],
-
                      subject: Person,
+
                      citizenOf: Set[Country],
                      livesIn: Option[String]) extends Fact {
   type Subject = Person
@@ -89,8 +89,8 @@ case class OwnerFact(id: String,
                      media: Option[Media],
                      articleUrl: String,
                      articlePublishedAt: Option[DateTime],
-
                      subject: Owner,
+
                      owns: Property,
                      sharePercents: Int) extends Fact {
   type Subject = Owner
@@ -102,12 +102,12 @@ case class MemberFact(id: String,
                      media: Option[Media],
                      articleUrl: String,
                      articlePublishedAt: Option[DateTime],
-
                      subject: Person,
-                     memberOr: String,
-                     memberSince: LocalDate,
+
+                     memberOf: Organization,
+                     memberSince: Option[LocalDate],
                      position: Option[String],
-                     positionSince: Option[DateTime]) extends Fact {
+                     positionSince: Option[LocalDate]) extends Fact {
   type Subject = Person
 }
 

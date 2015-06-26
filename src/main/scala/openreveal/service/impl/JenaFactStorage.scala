@@ -1,6 +1,7 @@
 package openreveal.service.impl
 
 
+
 import com.hp.hpl.jena.query.{ReadWrite, Dataset}
 import com.hp.hpl.jena.rdf.model.{Resource, Model}
 import openreveal.exceptions.ValidationException
@@ -8,7 +9,7 @@ import openreveal.model._
 import openreveal.rdf.RdfModelProvider
 import openreveal.schema.{OpenRevealSchema => S}
 import openreveal.service.{Clock, FactStorage}
-import org.joda.time.DateTime
+import org.joda.time.{LocalDate, DateTime}
 import org.joda.time.format.ISODateTimeFormat
 
 import scala.util.Random
@@ -46,6 +47,15 @@ class JenaFactStorage(rdfModelProvider: RdfModelProvider, val clock: Clock) exte
           res.addProperty(S.PersonFact.citizenOf, b)
         }
         f.livesIn.foreach(res.addProperty(S.PersonFact.livesIn, _))
+        res
+      case m: MemberFact =>
+        val res = rdfModel.createResource(fact.id, S.MemberFact.a)
+        val orgRes = rdfModel.getResource(m.memberOf.id)
+        res.addProperty(S.MemberFact.memberOf, orgRes)
+        m.memberSince.foreach(d => res.addLiteral(S.MemberFact.memberSince, dateStr(d)))
+        m.position.foreach(res.addLiteral(S.MemberFact.position, _))
+        m.positionSince.foreach(d => res.addLiteral(S.MemberFact.positionSince, dateStr(d)))
+
         res
       case _ => throw new ValidationException(s"Fact not supported at the moment: $fact")
     }
@@ -89,5 +99,7 @@ class JenaFactStorage(rdfModelProvider: RdfModelProvider, val clock: Clock) exte
   }
 
   private def dateTimeStr(dt: DateTime) = ISODateTimeFormat.dateTime().print(dt)
+
+  private def dateStr(d: LocalDate) = ISODateTimeFormat.date().print(d)
 }
 

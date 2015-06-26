@@ -73,4 +73,13 @@ object OpenRevealSchema {
     val livesIn = m.createProperty(uri, "livesIn")
   }
 
+  object MemberFact extends FactT {
+    val a = m.createResource(uri + "MemberFact")
+
+    val memberOf = m.createProperty(uri, "memberOf")
+    val memberSince = m.createProperty(uri, "memberSince")
+    val position = m.createProperty(uri, "position")
+    val positionSince = m.createProperty(uri, "positionSince")
+  }
+
 }
