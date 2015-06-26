@@ -50,17 +50,19 @@ case class Media(id: String, name: String, registeredInCountry: Country) extends
 
 //Facts
 
-trait Fact[SUBJ <: Entity] extends Id {
+trait Fact extends Id {
+  type Subject <: Entity
+
+  //TODO get rid of type params, use path-dependent types
   val id: String
   val reportedBy: User
   val reportedAt: DateTime
-  val subject: SUBJ
-}
 
-trait ArticleFact[SUBJ <: Entity] extends Fact[SUBJ] {
   val articleUrl: String
   val articlePublishedAt: Option[DateTime]
   val media: Option[Media]
+
+  val subject: Subject
 }
 
 case class EntityDefinition[T <: Entity](reportedBy: User,
@@ -76,7 +78,9 @@ case class PersonFact(id: String,
 
                      subject: Person,
                      citizenOf: Set[Country],
-                     livesIn: Option[String]) extends ArticleFact[Person]
+                     livesIn: Option[String]) extends Fact {
+  type Subject = Person
+}
 
 
 case class OwnerFact(id: String,
@@ -88,7 +92,9 @@ case class OwnerFact(id: String,
 
                      subject: Owner,
                      owns: Property,
-                     sharePercents: Int) extends ArticleFact[Owner]
+                     sharePercents: Int) extends Fact {
+  type Subject = Owner
+}
 
 case class MemberFact(id: String,
                      reportedBy: User,
@@ -101,7 +107,9 @@ case class MemberFact(id: String,
                      memberOr: String,
                      memberSince: LocalDate,
                      position: Option[String],
-                     positionSince: Option[DateTime]) extends ArticleFact[Person]
+                     positionSince: Option[DateTime]) extends Fact {
+  type Subject = Person
+}
 
 
 

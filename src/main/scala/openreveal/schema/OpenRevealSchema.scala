@@ -59,19 +59,14 @@ object OpenRevealSchema {
 
   trait FactT extends ReportedT {
     val subject = m.createProperty(uri, "subject")
-  }
-
-  object Fact extends FactT
-
-  trait ArticleFactT extends FactT {
     val articleUrl = m.createProperty(uri, "articleUrl")
     val articlePublishedAt = m.createProperty(uri, "articlePublishedAt")
     val media = m.createProperty(uri, "media")
   }
 
-  object ArticleFact extends ArticleFactT
+  object Fact extends FactT
 
-  object PersonFact extends ArticleFactT {
+  object PersonFact extends FactT {
     val a = m.createResource(uri + "PersonFact")
 
     val citizenOf = m.createProperty(uri, "citizenOf")

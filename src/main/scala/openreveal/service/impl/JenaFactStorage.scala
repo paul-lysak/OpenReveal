@@ -18,7 +18,7 @@ import scala.util.Random
  * Created by Paul Lysak on 02.06.15.
  */
 class JenaFactStorage(rdfModelProvider: RdfModelProvider, val clock: Clock) extends FactStorage {
-  override def saveFact(fact: Fact[_ <: Entity]): Unit = {
+  override def saveFact(fact: Fact): Unit = {
     rdfModelProvider.writeWithModel(factToResource(_, fact))
   }
 
@@ -36,7 +36,7 @@ class JenaFactStorage(rdfModelProvider: RdfModelProvider, val clock: Clock) exte
     //TODO more secure uuid-like algorithm
     Random.nextString(6)
 
-  private def factToResource[T <: Entity](rdfModel: Model, fact: Fact[T]): Resource = {
+  private def factToResource[T <: Entity](rdfModel: Model, fact: Fact): Resource = {
     val res = fact match {
       case f: PersonFact =>
         val res = rdfModel.createResource(fact.id, S.PersonFact.a)
@@ -56,15 +56,12 @@ class JenaFactStorage(rdfModelProvider: RdfModelProvider, val clock: Clock) exte
     val subj = rdfModel.getResource(fact.subject.id)
     res.addProperty(S.Fact.subject, subj)
 
-    fact match {
-      case af: ArticleFact[T] =>
-        res.addProperty(S.ArticleFact.articleUrl, af.articleUrl)
-        af.articlePublishedAt.foreach(dt => res.addProperty(S.ArticleFact.articlePublishedAt, dateTimeStr(dt)))
-        af.media.foreach({m =>
-          val mRes = rdfModel.getResource(m.id)
-          res.addProperty(S.ArticleFact.media, mRes)
-        })
-    }
+    res.addProperty(S.Fact.articleUrl, fact.articleUrl)
+    fact.articlePublishedAt.foreach(dt => res.addProperty(S.Fact.articlePublishedAt, dateTimeStr(dt)))
+    fact.media.foreach({m =>
+      val mRes = rdfModel.getResource(m.id)
+      res.addProperty(S.Fact.media, mRes)
+    })
 
     res
   }

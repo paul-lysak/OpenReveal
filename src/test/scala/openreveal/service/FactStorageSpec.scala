@@ -49,15 +49,11 @@ class FactStorageSpec extends FlatSpec with Matchers {
   }
 
 
-  it should "register person fact" in {
-    val TestEnv(storage, model) = createEnv()
+  it should "register person full fact" in {
     val subj = Person("Darth_Vader", "Darth Vader")
     val media = Media("Galaxy_Times", "Galaxy Times", "UA")
-    Seq(subj, media).
-      foreach(e => storage.defineEntity(EntityDefinition(SAMPLE_USER, fixedClock.now(), e)))
 
-    val factId = "DV_user1_person"
-    val fact = PersonFact(id = factId,
+    val fact = PersonFact(id = "DV_user1_person",
       reportedBy = SAMPLE_USER,
       reportedAt = fixedClock.now(),
       media = Option(media),
@@ -66,23 +62,31 @@ class FactStorageSpec extends FlatSpec with Matchers {
       subject = subj,
       citizenOf = Set("UA", "PA"),
       livesIn = Some("UA"))
-    storage.saveFact(fact)
-
-    val res = model.getResource(fact.id)
-    res.getRequiredProperty(RDF.`type`).getObject shouldBe s.PersonFact.a
-
-    res.getRequiredProperty(s.Reported.reportedBy).getObject shouldBe getUserRes(model)
-    res.getRequiredProperty(s.Reported.reportedAt).getLiteral.getString shouldBe sampleDateTimeStr
-    res.getRequiredProperty(s.ArticleFact.media).getResource.getURI shouldBe media.id
-    res.getRequiredProperty(s.ArticleFact.articleUrl).getLiteral.getString shouldBe fact.articleUrl
-    res.getRequiredProperty(s.ArticleFact.articlePublishedAt).getLiteral.getString shouldBe articleDateTimeStr
-
-    res.getRequiredProperty(s.Fact.subject).getResource.getURI shouldBe subj.id
+    val res = testFactCreation(fact)
 
     val actualCitizen = res.getRequiredProperty(s.PersonFact.citizenOf).getBag.iterator().toSet.map(_.asLiteral().getString)
     actualCitizen shouldBe fact.citizenOf
     Option(res.getRequiredProperty(s.PersonFact.livesIn).getString) shouldBe fact.livesIn
   }
+
+  it should "register person minimal fact" in {
+    val subj = Person("Darth_Vader", "Darth Vader")
+
+    val fact = PersonFact(id = "DV_user1_person",
+      reportedBy = SAMPLE_USER,
+      reportedAt = fixedClock.now(),
+      media = None,
+      articleUrl = "google.com",
+      articlePublishedAt = None,
+      subject = subj,
+      citizenOf = Set(),
+      livesIn = None)
+    val res = testFactCreation(fact)
+
+    res.hasProperty(s.PersonFact.citizenOf) shouldBe false
+    res.hasProperty(s.PersonFact.livesIn) shouldBe false
+  }
+
 
   it should "register member fact" in {
     ???
@@ -116,6 +120,31 @@ class FactStorageSpec extends FlatSpec with Matchers {
     res
   }
 
+  private def testFactCreation(fact: Fact): Resource = {
+    val TestEnv(storage, model) = createEnv()
+    val entities = Set(fact.subject) ++ fact.media.toSet
+
+    entities.foreach(e => storage.defineEntity(EntityDefinition(SAMPLE_USER, fixedClock.now(), e)))
+
+    storage.saveFact(fact)
+
+    val res = model.getResource(fact.id)
+    res.getRequiredProperty(RDF.`type`).getObject shouldBe s.PersonFact.a
+
+    res.getRequiredProperty(s.Reported.reportedBy).getObject shouldBe getUserRes(model)
+    res.getRequiredProperty(s.Reported.reportedAt).getLiteral.getString shouldBe sampleDateTimeStr
+    fact.media.fold(
+      res.hasProperty(s.Fact.media) shouldBe false)(media =>
+      res.getRequiredProperty(s.Fact.media).getResource.getURI shouldBe media.id)
+    res.getRequiredProperty(s.Fact.articleUrl).getLiteral.getString shouldBe fact.articleUrl
+    fact.articlePublishedAt.fold(
+      res.hasProperty(s.Fact.articlePublishedAt) shouldBe false )(dt =>
+      res.getRequiredProperty(s.Fact.articlePublishedAt).getLiteral.getString shouldBe dateTimeStr(dt) )
+    res.getRequiredProperty(s.Fact.subject).getResource.getURI shouldBe fact.subject.id
+
+    res
+  }
+
   private def createEnv(): TestEnv = {
      val modelProvider = new RdfInMemoryModelProvider()
 
@@ -128,18 +157,19 @@ class FactStorageSpec extends FlatSpec with Matchers {
 
   private def getUserRes(implicit rdfModel: Model): Resource = rdfModel.getResource(SAMPLE_USER.id)
 
-  case class TestEnv(storage: JenaFactStorage, model: Model)
+  private case class TestEnv(storage: JenaFactStorage, model: Model)
 
-  val SAMPLE_USER_NAME = "user1"
-  val SAMPLE_USER = User("user1", "user1@a.b.com")
+  private val SAMPLE_USER_NAME = "user1"
+  private val SAMPLE_USER = User("user1", "user1@a.b.com")
 
-  val sampleDateTime = DateTime.now()
-  val sampleDateTimeStr = ISODateTimeFormat.dateTime().print(sampleDateTime)
-  val fixedClock = new Clock {
+  private val sampleDateTime = DateTime.now()
+  private val sampleDateTimeStr = ISODateTimeFormat.dateTime().print(sampleDateTime)
+  private val fixedClock = new Clock {
     override def now(): DateTime = sampleDateTime
   }
 
-  val articleDateTime = DateTime.parse("2015-06-01T10:00:00Z")
-  val articleDateTimeStr = "2015-06-01T10:00:00.000Z"
+  private val articleDateTime = DateTime.parse("2015-06-01T10:00:00Z")
+  private val articleDateTimeStr = "2015-06-01T10:00:00.000Z"
 
+  private def dateTimeStr(dt: DateTime) = ISODateTimeFormat.dateTime().print(dt)
 }

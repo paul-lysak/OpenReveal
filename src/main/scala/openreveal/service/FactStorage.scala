@@ -7,7 +7,7 @@ import org.joda.time.DateTime
  * Created by Paul Lysak on 02.06.15.
  */
 trait FactStorage {
-  def saveFact(fact: Fact[_ <: Entity])
+  def saveFact(fact: Fact)
 
   def defineEntity[T <: Entity](entityDef: EntityDefinition[T]): T
 
