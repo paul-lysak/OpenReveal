@@ -6,8 +6,10 @@ import com.hp.hpl.jena.rdf.model.{Resource, Model}
 import openreveal.exceptions.ValidationException
 import openreveal.model._
 import openreveal.rdf.RdfModelProvider
-import openreveal.schema.OpenRevealSchema
+import openreveal.schema.{OpenRevealSchema => S}
 import openreveal.service.{Clock, FactStorage}
+import org.joda.time.DateTime
+import org.joda.time.format.ISODateTimeFormat
 
 import scala.util.Random
 
@@ -16,7 +18,7 @@ import scala.util.Random
  * Created by Paul Lysak on 02.06.15.
  */
 class JenaFactStorage(rdfModelProvider: RdfModelProvider, val clock: Clock) extends FactStorage {
-  override def saveFact(fact: Fact): Unit = {
+  override def saveFact(fact: Fact[_ <: Entity]): Unit = {
     rdfModelProvider.writeWithModel(factToResource(_, fact))
   }
 
@@ -24,8 +26,8 @@ class JenaFactStorage(rdfModelProvider: RdfModelProvider, val clock: Clock) exte
     rdfModelProvider.writeWithModel({rdfModel =>
       val res = entityToResource(rdfModel, entityDef.entity)
       val reporter = rdfModel.getResource(entityDef.reportedBy.id)
-      res.addProperty(OpenRevealSchema.Entity.reportedBy, reporter)
-      res.addLiteral(OpenRevealSchema.Entity.reportedAt, clock.nowIsoString())
+      res.addProperty(S.Entity.reportedBy, reporter)
+      res.addLiteral(S.Entity.reportedAt, clock.nowIsoString())
       entityDef.entity
     })
   }
@@ -34,31 +36,61 @@ class JenaFactStorage(rdfModelProvider: RdfModelProvider, val clock: Clock) exte
     //TODO more secure uuid-like algorithm
     Random.nextString(6)
 
-  private def factToResource(rdfModel: Model, fact: Fact): Resource = {
-    fact match {
+  private def factToResource[T <: Entity](rdfModel: Model, fact: Fact[T]): Resource = {
+    val res = fact match {
+      case f: PersonFact =>
+        val res = rdfModel.createResource(fact.id, S.PersonFact.a)
+        if(f.citizenOf.nonEmpty) {
+          val b = rdfModel.createBag()
+          f.citizenOf.foreach(b.add)
+          res.addProperty(S.PersonFact.citizenOf, b)
+        }
+        f.livesIn.foreach(res.addProperty(S.PersonFact.livesIn, _))
+        res
       case _ => throw new ValidationException(s"Fact not supported at the moment: $fact")
     }
+
+    val reporter = rdfModel.getResource(fact.reportedBy.id)
+    res.addProperty(S.Fact.reportedBy, reporter)
+    res.addLiteral(S.Entity.reportedAt, dateTimeStr(fact.reportedAt))
+    val subj = rdfModel.getResource(fact.subject.id)
+    res.addProperty(S.Fact.subject, subj)
+
+    fact match {
+      case af: ArticleFact[T] =>
+        res.addProperty(S.ArticleFact.articleUrl, af.articleUrl)
+        af.articlePublishedAt.foreach(dt => res.addProperty(S.ArticleFact.articlePublishedAt, dateTimeStr(dt)))
+        af.media.foreach({m =>
+          val mRes = rdfModel.getResource(m.id)
+          res.addProperty(S.ArticleFact.media, mRes)
+        })
+    }
+
+    res
   }
 
   private def entityToResource(rdfModel: Model, entity: Entity) = {
     val res = entity match {
       case User(id, email) =>
-        val res = rdfModel.createResource(id, OpenRevealSchema.User.a)
-        res.addProperty(OpenRevealSchema.User.email, email)
-      case PoliticalParty(id, name, country) => rdfModel.createResource(id, OpenRevealSchema.PoliticalParty.a)
-      case Person(id, _) => rdfModel.createResource(id, OpenRevealSchema.Person.a)
-      case GenericCompany(id, _, _) => rdfModel.createResource(id, OpenRevealSchema.GenericCompany.a)
-      case TradeMark(id, _, _) => rdfModel.createResource(id, OpenRevealSchema.TradeMark.a)
+        val res = rdfModel.createResource(id, S.User.a)
+        res.addProperty(S.User.email, email)
+      case PoliticalParty(id, name, country) => rdfModel.createResource(id, S.PoliticalParty.a)
+      case Person(id, _) => rdfModel.createResource(id, S.Person.a)
+      case GenericCompany(id, _, _) => rdfModel.createResource(id, S.GenericCompany.a)
+      case TradeMark(id, _, _) => rdfModel.createResource(id, S.TradeMark.a)
+      case Media(id, _, _) => rdfModel.createResource(id, S.Media.a)
       case _ => throw new ValidationException(s"Entity not supported at the moment: $entity")
     }
 
     entity match {
       case r: Registrable =>
-        res.addProperty(OpenRevealSchema.Registrable.registeredInCountry, r.registeredInCountry)
+        res.addProperty(S.Registrable.registeredInCountry, r.registeredInCountry)
       case _ => //no additional checks
     }
 
-    res.addProperty(OpenRevealSchema.Entity.name, entity.name)
+    res.addProperty(S.Entity.name, entity.name)
   }
+
+  private def dateTimeStr(dt: DateTime) = ISODateTimeFormat.dateTime().print(dt)
 }
 

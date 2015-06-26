@@ -1,6 +1,6 @@
 package openreveal.model
 
-import org.joda.time.DateTime
+import org.joda.time.{LocalDate, DateTime}
 
 /**
  * Created by Paul Lysak on 02.06.15.
@@ -37,29 +37,27 @@ case class PoliticalParty(id: String, name: String, registeredInCountry: String)
 
 case class Person(id: String,
                   name: String) extends Owner
-//TODO represent following properties as a fact
-//                  citizenOf: Seq[Country],
-//                  livesIn: Option[Country]) extends Owner
 
 case class TradeMark(id: String,
                      name: String,
                      registeredInCountry: Country) extends Property with Registrable
 
 //Company types
-case class GenericCompany(id: String, name: String, registeredInCountry: String) extends Company
+case class GenericCompany(id: String, name: String, registeredInCountry: Country) extends Company
 
-case class Media(id: String, name: String, registeredInCountry: String) extends Company
+case class Media(id: String, name: String, registeredInCountry: Country) extends Company
 
 
 //Facts
 
-trait Fact extends Id {
+trait Fact[SUBJ <: Entity] extends Id {
   val id: String
   val reportedBy: User
   val reportedAt: DateTime
+  val subject: SUBJ
 }
 
-trait ArticleFact extends Fact {
+trait ArticleFact[SUBJ <: Entity] extends Fact[SUBJ] {
   val articleUrl: String
   val articlePublishedAt: Option[DateTime]
   val media: Option[Media]
@@ -69,15 +67,41 @@ case class EntityDefinition[T <: Entity](reportedBy: User,
                                          reportedAt: DateTime,
                                          entity: T)
 
+case class PersonFact(id: String,
+                     reportedBy: User,
+                     reportedAt: DateTime,
+                     media: Option[Media],
+                     articleUrl: String,
+                     articlePublishedAt: Option[DateTime],
+
+                     subject: Person,
+                     citizenOf: Set[Country],
+                     livesIn: Option[String]) extends ArticleFact[Person]
+
+
 case class OwnerFact(id: String,
                      reportedBy: User,
                      reportedAt: DateTime,
                      media: Option[Media],
                      articleUrl: String,
                      articlePublishedAt: Option[DateTime],
+
                      subject: Owner,
                      owns: Property,
-                     sharePercents: Int) extends Fact
+                     sharePercents: Int) extends ArticleFact[Owner]
+
+case class MemberFact(id: String,
+                     reportedBy: User,
+                     reportedAt: DateTime,
+                     media: Option[Media],
+                     articleUrl: String,
+                     articlePublishedAt: Option[DateTime],
+
+                     subject: Person,
+                     memberOr: String,
+                     memberSince: LocalDate,
+                     position: Option[String],
+                     positionSince: Option[DateTime]) extends ArticleFact[Person]
 
 
 

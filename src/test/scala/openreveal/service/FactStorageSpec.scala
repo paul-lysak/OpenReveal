@@ -9,6 +9,7 @@ import openreveal.service.impl.JenaFactStorage
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 import org.scalatest.{Matchers, FlatSpec}
+import scala.collection.JavaConversions._
 
 /**
  * Created by Paul Lysak on 02.06.15.
@@ -43,7 +44,47 @@ class FactStorageSpec extends FlatSpec with Matchers {
     testEntityCreation(TradeMark("Battle_Clones", "Battle Clones", "Tatouine"), s.TradeMark.a)
   }
 
-  it should "register politican fact" in {
+  it should "create media" in {
+    testEntityCreation(Media("Galaxy_Tomorrow", "Galaxy Tomorrow", "Tatouine"), s.Media.a)
+  }
+
+
+  it should "register person fact" in {
+    val TestEnv(storage, model) = createEnv()
+    val subj = Person("Darth_Vader", "Darth Vader")
+    val media = Media("Galaxy_Times", "Galaxy Times", "UA")
+    Seq(subj, media).
+      foreach(e => storage.defineEntity(EntityDefinition(SAMPLE_USER, fixedClock.now(), e)))
+
+    val factId = "DV_user1_person"
+    val fact = PersonFact(id = factId,
+      reportedBy = SAMPLE_USER,
+      reportedAt = fixedClock.now(),
+      media = Option(media),
+      articleUrl = "google.com",
+      articlePublishedAt = Option(articleDateTime),
+      subject = subj,
+      citizenOf = Set("UA", "PA"),
+      livesIn = Some("UA"))
+    storage.saveFact(fact)
+
+    val res = model.getResource(fact.id)
+    res.getRequiredProperty(RDF.`type`).getObject shouldBe s.PersonFact.a
+
+    res.getRequiredProperty(s.Reported.reportedBy).getObject shouldBe getUserRes(model)
+    res.getRequiredProperty(s.Reported.reportedAt).getLiteral.getString shouldBe sampleDateTimeStr
+    res.getRequiredProperty(s.ArticleFact.media).getResource.getURI shouldBe media.id
+    res.getRequiredProperty(s.ArticleFact.articleUrl).getLiteral.getString shouldBe fact.articleUrl
+    res.getRequiredProperty(s.ArticleFact.articlePublishedAt).getLiteral.getString shouldBe articleDateTimeStr
+
+    res.getRequiredProperty(s.Fact.subject).getResource.getURI shouldBe subj.id
+
+    val actualCitizen = res.getRequiredProperty(s.PersonFact.citizenOf).getBag.iterator().toSet.map(_.asLiteral().getString)
+    actualCitizen shouldBe fact.citizenOf
+    Option(res.getRequiredProperty(s.PersonFact.livesIn).getString) shouldBe fact.livesIn
+  }
+
+  it should "register member fact" in {
     ???
   }
 
@@ -63,8 +104,8 @@ class FactStorageSpec extends FlatSpec with Matchers {
 
     res.getRequiredProperty(RDF.`type`).getObject shouldBe expectedType
     res.getRequiredProperty(s.Entity.name).getLiteral.toString shouldBe entity.name
-    res.getRequiredProperty(s.PoliticalParty.reportedBy).getObject shouldBe getUserRes(model)
-    res.getRequiredProperty(s.PoliticalParty.reportedAt).getLiteral.getString shouldBe sampleDateTimeStr
+    res.getRequiredProperty(s.Reported.reportedBy).getObject shouldBe getUserRes(model)
+    res.getRequiredProperty(s.Reported.reportedAt).getLiteral.getString shouldBe sampleDateTimeStr
 
     entity match {
       case r: Registrable =>
@@ -97,5 +138,8 @@ class FactStorageSpec extends FlatSpec with Matchers {
   val fixedClock = new Clock {
     override def now(): DateTime = sampleDateTime
   }
+
+  val articleDateTime = DateTime.parse("2015-06-01T10:00:00Z")
+  val articleDateTimeStr = "2015-06-01T10:00:00.000Z"
 
 }

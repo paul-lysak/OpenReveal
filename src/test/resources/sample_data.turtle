@@ -34,7 +34,7 @@
     ore:reportedAt "2015-05-29T10:06:00";
 
     ore:fact [
-        a ore:PoliticanFact;
+        a ore:MemberFact;
         ore:reportedBy <#scribe1>;
         ore:reportedAt "2015-05-29T10:06:00";
 
@@ -50,7 +50,15 @@
     ore:reportedAt "2015-05-29T10:06:00";
 
     ore:fact [
-        a ore:PoliticanFact;
+        a ore:PersonFact;
+        ore:reportedBy <#scribe2>;
+        ore:reportedAt "2015-05-29T10:06:00";
+
+        ore:citizenOf <#Tatouine>
+    ];
+
+    ore:fact [
+        a ore:MemberFact;
         ore:reportedBy <#scribe2>;
         ore:reportedAt "2015-05-29T10:06:00";
 
@@ -58,7 +66,6 @@
         ore:memberSince "2013-01-01";
         ore:position <#Party-Leader>;
         ore:positionSince "2013-01-01";
-        ore:citizenOf <#Tatouine>
     ] .
 
 
