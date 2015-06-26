@@ -135,12 +135,67 @@ class FactStorageSpec extends FlatSpec with Matchers {
   }
 
 
-  it should "register ownership fact" in {
-    ???
+  it should "register ownership full fact" in {
+    val subj = Person("Darth_Vader", "Darth Vader")
+    val company = GenericCompany("DS", "Death Star Inc.", "Tatouine")
+
+    val fact = OwnerFact(id = "DV_user1_own",
+      reportedBy = SAMPLE_USER,
+      reportedAt = fixedClock.now(),
+      media = None,
+      articleUrl = "google.com",
+      articlePublishedAt = None,
+      subject = subj,
+      owns = company,
+      ownsSince = Option(LocalDate.parse("2015-02-01")),
+      sharePercents = Some(30))
+    val res = testFactCreation(fact, s.OwnerFact.a)
+
+    res.getRequiredProperty(s.OwnerFact.owns).getResource.getURI shouldBe company.id
+    res.getRequiredProperty(s.OwnerFact.ownsSince).getString shouldBe dateStr(fact.ownsSince.get)
+    res.getRequiredProperty(s.OwnerFact.sharePercents).getInt shouldBe fact.sharePercents.get
   }
 
-  it should "register trademark fact" in {
-    ???
+  it should "register ownership minimal fact" in {
+    val subj = Person("Darth_Vader", "Darth Vader")
+    val company = GenericCompany("DS", "Death Star Inc.", "Tatouine")
+
+    val fact = OwnerFact(id = "DV_user1_own",
+      reportedBy = SAMPLE_USER,
+      reportedAt = fixedClock.now(),
+      media = None,
+      articleUrl = "google.com",
+      articlePublishedAt = None,
+      subject = subj,
+      owns = company,
+      ownsSince = None,
+      sharePercents = None)
+    val res = testFactCreation(fact, s.OwnerFact.a)
+
+    res.getRequiredProperty(s.OwnerFact.owns).getResource.getURI shouldBe company.id
+    res.hasProperty(s.OwnerFact.ownsSince) shouldBe false
+    res.hasProperty(s.OwnerFact.sharePercents) shouldBe false
+  }
+
+  it should "register trademark ownersip fact" in {
+    val subj = GenericCompany("Clones_Holding", "Clones Holding LTD", "PlanetA")
+    val tm = TradeMark("BattleClone", "Battle Clone", "PlanetA")
+
+    val fact = OwnerFact(id = "DV_user1_own",
+      reportedBy = SAMPLE_USER,
+      reportedAt = fixedClock.now(),
+      media = None,
+      articleUrl = "google.com",
+      articlePublishedAt = None,
+      subject = subj,
+      owns = tm,
+      ownsSince = None,
+      sharePercents = None)
+    val res = testFactCreation(fact, s.OwnerFact.a)
+
+    res.getRequiredProperty(s.OwnerFact.owns).getResource.getURI shouldBe tm.id
+    res.hasProperty(s.OwnerFact.ownsSince) shouldBe false
+    res.hasProperty(s.OwnerFact.sharePercents) shouldBe false
   }
 
   private def testEntityCreation(entity: Entity, expectedType: Resource): Resource = {

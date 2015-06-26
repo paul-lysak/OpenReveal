@@ -92,7 +92,8 @@ case class OwnerFact(id: String,
                      subject: Owner,
 
                      owns: Property,
-                     sharePercents: Int) extends Fact {
+                     ownsSince: Option[LocalDate],
+                     sharePercents: Option[Int]) extends Fact {
   type Subject = Owner
 }
 

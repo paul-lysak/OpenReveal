@@ -31,99 +31,99 @@
     a ore:Person;
     ore:name "Darth Vader";
     ore:reportedBy <#scribe1>;
+    ore:reportedAt "2015-05-29T10:06:00" .
+
+<#DV-scribe1-fact1>
+    a ore:MemberFact;
+    ore:reportedBy <#scribe1>;
     ore:reportedAt "2015-05-29T10:06:00";
+    ore:subject <#Darth-Vader>;
 
-    ore:fact [
-        a ore:MemberFact;
-        ore:reportedBy <#scribe1>;
-        ore:reportedAt "2015-05-29T10:06:00";
+    ore:memberOf <#Imperial-Party-Of-Galaxy>;
+    ore:memberSince "2014-01-01";
+    ore:citizenOf <#Tatouine>.
 
-        ore:memberOf <#Imperial-Party-Of-Galaxy>;
-        ore:memberSince "2014-01-01";
-        ore:citizenOf <#Tatouine>
-    ] .
 
 <#Emperor>
     a ore:Person;
     ore:name "Emperor";
     ore:reportedBy <#scribe2>;
+    ore:reportedAt "2015-05-29T10:06:00" .
+
+<#Emp-scribe2-fact1>
+    a ore:PersonFact;
+    ore:reportedBy <#scribe2>;
     ore:reportedAt "2015-05-29T10:06:00";
+    ore:subject <#Emperor>;
 
-    ore:fact [
-        a ore:PersonFact;
-        ore:reportedBy <#scribe2>;
-        ore:reportedAt "2015-05-29T10:06:00";
+    ore:citizenOf <#Tatouine> .
 
-        ore:citizenOf <#Tatouine>
-    ];
+<#Emp-scribe2-fact2>
+    a ore:MemberFact;
+    ore:reportedBy <#scribe2>;
+    ore:reportedAt "2015-05-29T10:06:00";
+    ore:subject <#Emperor>;
 
-    ore:fact [
-        a ore:MemberFact;
-        ore:reportedBy <#scribe2>;
-        ore:reportedAt "2015-05-29T10:06:00";
-
-        ore:memberOf <#Imperial-Party-Of-Galaxy>;
-        ore:memberSince "2013-01-01";
-        ore:position <#Party-Leader>;
-        ore:positionSince "2013-01-01";
-    ] .
-
+    ore:memberOf <#Imperial-Party-Of-Galaxy>;
+    ore:memberSince "2013-01-01";
+    ore:position <#Party-Leader>;
+    ore:positionSince "2013-01-01".
 
 <#Death-Star-Inc>
     a ore:GenericCompany;
     ore:name "Death Star Inc.";
     ore:reportedBy <#scribe1>;
-    ore:reportedAt "2015-05-29T10:06:00";
+    ore:reportedAt "2015-05-29T10:06:00".
 
-    ore:fact [
-        a ore:OwnershipFact;
-        ore:reportedBy <#scribe1>;
-        ore:reportedAt "2015-05-29T11:06:00";
 
-        ore:shareSize "30%";
-        ore:ownedBy <#Darth-Vader>
-    ].
+<#DS-scribe1-fact1>
+    a ore:OwnershipFact;
+    ore:reportedBy <#scribe1>;
+    ore:reportedAt "2015-05-29T11:06:00";
+    ore:subject <#Darth-Vader>;
 
-<#Death-Star-Inc>
-    ore:fact [
-        a ore:OwnershipFact;
-        ore:reportedBy <#scribe2>;
-        ore:reportedAt "2015-05-29T11:30:00";
+    ore:owns <#Death-Star-Inc>;
+    ore:sharePercents "30".
 
-        a ore:Share;
-        ore:shareSize "60%";
-        ore:ownedBy <#Emperor>
-    ].
+<#DS-scribe2-fact1>
+    a ore:OwnershipFact;
+    ore:reportedBy <#scribe2>;
+    ore:reportedAt "2015-05-29T11:30:00";
+    ore:subject <#Emperor>;
+
+    ore:owns <#Death-Star-Inc>;
+    ore:sharePercents "60".
 
 <#Clones-Factory-Inc>
     a ore:GenericCompany;
     ore:name "Clones Factory Inc.";
     ore:reportedBy <#scribe1>;
-    ore:reportedAt "2015-05-29T10:06:00";
+    ore:reportedAt "2015-05-29T10:06:00".
 
-    ore:fact [
-        a ore:OwnershipFact;
-        ore:reportedBy <#scribe1>;
-        ore:reportedAt "2015-05-29T12:00:00";
 
-        ore:shareSize "55%";
-        ore:ownedBy <#Darth-Vader>;
-        ore:ownedSince "2015-01-01"
-    ].
+<#CF-scribe1-fact1>
+    a ore:OwnershipFact;
+    ore:reportedBy <#scribe1>;
+    ore:reportedAt "2015-05-29T12:00:00";
+    ore:subject <#Darth-Vader>;
+
+    ore:owns <#Clones-Factory-Inc>;
+    ore:shareSize "55%";
+    ore:ownsSince "2015-01-01".
 
 <#Battle-Clone>
     a ore:TradeMark;
     ore:name "Battle Clone";
     ore:reportedBy <#scribe1>;
-    ore:reportedAt "2015-05-29T10:06:00";
+    ore:reportedAt "2015-05-29T10:06:00".
 
-    ore:fact [
-        a ore:TradeMarkFact;
-        ore:reportedBy <#scribe1>;
-        ore:reportedAt "2015-05-29T12:00:00";
+<#BC-scribe1-fact1>
+    a ore:OwnershipFact;
+    ore:reportedBy <#scribe1>;
+    ore:reportedAt "2015-05-29T12:00:00";
+    ore:subject <#Clones-Factory-Inc>;
 
-        ore:ownedBy <#Clones-Factory-Inc>
-    ].
+    ore:owns <#Battle-Clone>.
 
 <#scribe3>
     ore:trusts <#scribe1> ;

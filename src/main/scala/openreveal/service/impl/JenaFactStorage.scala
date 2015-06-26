@@ -55,7 +55,13 @@ class JenaFactStorage(rdfModelProvider: RdfModelProvider, val clock: Clock) exte
         m.memberSince.foreach(d => res.addLiteral(S.MemberFact.memberSince, dateStr(d)))
         m.position.foreach(res.addLiteral(S.MemberFact.position, _))
         m.positionSince.foreach(d => res.addLiteral(S.MemberFact.positionSince, dateStr(d)))
-
+        res
+      case o: OwnerFact =>
+        val res = rdfModel.createResource(fact.id, S.OwnerFact.a)
+        val propRes = rdfModel.getResource(o.owns.id)
+        res.addProperty(S.OwnerFact.owns, propRes)
+        o.ownsSince.foreach(d => res.addLiteral(S.OwnerFact.ownsSince, dateStr(d)))
+        o.sharePercents.foreach(s => res.addLiteral(S.OwnerFact.sharePercents, s))
         res
       case _ => throw new ValidationException(s"Fact not supported at the moment: $fact")
     }
