@@ -14,11 +14,11 @@ import scala.collection.JavaConversions._
 /**
  * Created by Paul Lysak on 02.06.15.
  */
-class FactStorageSpec extends FlatSpec with Matchers {
+class FactStorageSpec extends FlatSpec with Matchers with JenaSpecCommons {
   val s = OpenRevealSchema
 
   "FactStorage" should "create user" in {
-    val TestEnv(_, model) = createEnv()
+    val TestEnv(_, _, model) = createEnv()
 
     val user1Resource = getUserRes(model)
 
@@ -199,7 +199,7 @@ class FactStorageSpec extends FlatSpec with Matchers {
   }
 
   private def testEntityCreation(entity: Entity, expectedType: Resource): Resource = {
-    val TestEnv(storage, model) = createEnv()
+    val TestEnv(storage, _, model) = createEnv()
     storage.defineEntity(EntityDefinition(SAMPLE_USER, fixedClock.now(), entity))
 
     val res = model.getResource(entity.id)
@@ -219,7 +219,7 @@ class FactStorageSpec extends FlatSpec with Matchers {
   }
 
   private def testFactCreation(fact: Fact, expectedType: Resource): Resource = {
-    val TestEnv(storage, model) = createEnv()
+    val TestEnv(storage, _, model) = createEnv()
     val entities = Set(fact.subject) ++ fact.media.toSet
 
     entities.foreach(e => storage.defineEntity(EntityDefinition(SAMPLE_USER, fixedClock.now(), e)))
@@ -243,28 +243,8 @@ class FactStorageSpec extends FlatSpec with Matchers {
     res
   }
 
-  private def createEnv(): TestEnv = {
-     val modelProvider = new RdfInMemoryModelProvider()
-
-    val storage = new JenaFactStorage(modelProvider, fixedClock)
-    storage.createUser(SAMPLE_USER.id, SAMPLE_USER.email)
-
-
-    TestEnv(storage, modelProvider.model)
-  }
 
   private def getUserRes(implicit rdfModel: Model): Resource = rdfModel.getResource(SAMPLE_USER.id)
-
-  private case class TestEnv(storage: JenaFactStorage, model: Model)
-
-  private val SAMPLE_USER_NAME = "user1"
-  private val SAMPLE_USER = User("user1", "user1@a.b.com")
-
-  private val sampleDateTime = DateTime.now()
-  private val sampleDateTimeStr = ISODateTimeFormat.dateTime().print(sampleDateTime)
-  private val fixedClock = new Clock {
-    override def now(): DateTime = sampleDateTime
-  }
 
   private val articleDateTime = DateTime.parse("2015-06-01T10:00:00Z")
   private val articleDateTimeStr = "2015-06-01T10:00:00.000Z"

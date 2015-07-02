@@ -77,8 +77,8 @@ case class PersonFact(id: String,
                      articlePublishedAt: Option[DateTime],
                      subject: Person,
 
-                     citizenOf: Set[Country],
-                     livesIn: Option[String]) extends Fact {
+                     citizenOf: Set[Country] = Set(),
+                     livesIn: Option[String] = None) extends Fact {
   type Subject = Person
 }
 
@@ -92,8 +92,8 @@ case class OwnerFact(id: String,
                      subject: Owner,
 
                      owns: Property,
-                     ownsSince: Option[LocalDate],
-                     sharePercents: Option[Int]) extends Fact {
+                     ownsSince: Option[LocalDate] = None,
+                     sharePercents: Option[Int] = None) extends Fact {
   type Subject = Owner
 }
 
