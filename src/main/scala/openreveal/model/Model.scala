@@ -63,6 +63,8 @@ trait Fact extends Id {
   val media: Option[Media]
 
   val subject: Subject
+
+  def affectedEntities: Set[Entity] = Set(subject)
 }
 
 case class EntityDefinition[T <: Entity](reportedBy: User,
@@ -95,6 +97,8 @@ case class OwnerFact(id: String,
                      ownsSince: Option[LocalDate] = None,
                      sharePercents: Option[Int] = None) extends Fact {
   type Subject = Owner
+
+  override def affectedEntities: Set[Entity] = super.affectedEntities ++ Set(owns)
 }
 
 case class MemberFact(id: String,
@@ -110,6 +114,8 @@ case class MemberFact(id: String,
                      position: Option[String],
                      positionSince: Option[LocalDate]) extends Fact {
   type Subject = Person
+
+  override def affectedEntities: Set[Entity] = super.affectedEntities ++ Set(memberOf)
 }
 
 

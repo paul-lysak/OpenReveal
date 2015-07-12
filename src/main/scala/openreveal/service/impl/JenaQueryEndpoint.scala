@@ -4,9 +4,10 @@ import com.hp.hpl.jena.rdf.model.{Resource, Statement, Selector, SimpleSelector}
 import com.hp.hpl.jena.vocabulary.RDF
 import openreveal.model._
 import openreveal.rdf.RdfModelProvider
+import openreveal.schema.OpenRevealSchema.Entity
 import openreveal.service.QueryEndpoint
 import openreveal.schema.{OpenRevealSchema => S}
-import org.joda.time.DateTime
+import org.joda.time.{LocalDate, DateTime}
 import org.slf4j.LoggerFactory
 import scala.collection.JavaConversions._
 
@@ -19,7 +20,7 @@ class JenaQueryEndpoint(rdfModelProvider: RdfModelProvider) extends QueryEndpoin
 
       val ent = model.getResource(entity.id)
       //TODO retrieve schema fact types from factTypes
-      val sFactTypes = Set(S.OwnerFact.a, S.PersonFact.a)
+      val sFactTypes = factTypes.map({t => S.byClass(t).a})
       val facts = model.listStatements(new SimpleSelector(null, null, ent) {
         override def selects(s: Statement): Boolean = {
           sFactTypes.contains(s.getSubject.getProperty(RDF.`type`).getResource)
@@ -31,9 +32,10 @@ class JenaQueryEndpoint(rdfModelProvider: RdfModelProvider) extends QueryEndpoin
       println(factsL)
       println(factsS)
       //TODO convert facts to domain objects
+      val entitiesS: Set[Entity] = Set(entity) ++ factsS.flatMap(_.affectedEntities)
 
 //      (Set(resourceToEntity(ent).get), factsS)
-      (Set[Entity](), factsS)
+      (entitiesS, factsS)
     })
   }
 
@@ -48,9 +50,12 @@ class JenaQueryEndpoint(rdfModelProvider: RdfModelProvider) extends QueryEndpoin
       log.warn(s"No type specified for entity resource $id")
       None
     })({
-      case S.User.a => Option(User(id, name))
+      case S.User.a =>
+        val email = Option(res.getProperty(S.User.email)).map(_.getString).orNull
+        Option(User(id, email))
       case S.Person.a => Option(Person(id, name))
       case S.Media.a => Option(Media(id, name, regIn))
+      case S.GenericCompany.a => Option(GenericCompany(id, name, regIn))
       case a =>
         log.warn(s"Can't build entity from resource $id with type $a")
         None
@@ -60,26 +65,42 @@ class JenaQueryEndpoint(rdfModelProvider: RdfModelProvider) extends QueryEndpoin
   private def getDateTime(res: Resource, prop: com.hp.hpl.jena.rdf.model.Property): Option[DateTime] =
     Option(res.getProperty(prop)).map(s => DateTime.parse(s.getString))
 
+  private def getLocalDate(res: Resource, prop: com.hp.hpl.jena.rdf.model.Property): Option[LocalDate] =
+    Option(res.getProperty(prop)).map(s => LocalDate.parse(s.getString))
+
+
   private def getEntity(res: Resource, prop: com.hp.hpl.jena.rdf.model.Property): Option[Entity] =
     Option(res.getProperty(prop)).flatMap(r => resourceToEntity(r.getResource))
 
   private def getUser(res: Resource, prop: com.hp.hpl.jena.rdf.model.Property): Option[User] =
+    getSpecificEntity(res, prop, classOf[User])
+//    getEntity(res, prop) match {
+//      case Some(u: User) => Some(u)
+//      case Some(other) =>
+//        log.warn(s"Not a User entity: $other")
+//        None
+//      case _ => None
+//    }
+
+  private def getMedia(res: Resource, prop: com.hp.hpl.jena.rdf.model.Property): Option[Media] =
+    getSpecificEntity(res, prop, classOf[Media])
+//    getEntity(res, prop) match {
+//      case Some(m: Media) => Some(m)
+//      case Some(other) =>
+//        log.warn(s"Not a Media entity: $other")
+//        None
+//      case _ => None
+//    }
+
+  private def getSpecificEntity[E <: Entity](res: Resource, prop: com.hp.hpl.jena.rdf.model.Property, eClass: Class[E]): Option[E] =
     getEntity(res, prop) match {
-      case Some(u: User) => Some(u)
+      case Some(m: E) if eClass.isInstance(m) => Some(m)
       case Some(other) =>
-        log.warn(s"Not a User entity: $other")
+        log.warn(s"Entity $other type isn't compatible with $eClass")
         None
       case _ => None
     }
 
-  private def getMedia(res: Resource, prop: com.hp.hpl.jena.rdf.model.Property): Option[Media] =
-    getEntity(res, prop) match {
-      case Some(m: Media) => Some(m)
-      case Some(other) =>
-        log.warn(s"Not a Media entity: $other")
-        None
-      case _ => None
-    }
 
   private def resourceToFact(res: Resource): Option[Fact] = {
     val id = res.getURI
@@ -103,6 +124,16 @@ class JenaQueryEndpoint(rdfModelProvider: RdfModelProvider) extends QueryEndpoin
           media, articleUrl, articlePublishedAt,
           s,
           citizenOf, livesIn))
+      case (S.OwnerFact.a, Some(s: Owner)) =>
+        val owns = getSpecificEntity(res, S.OwnerFact.owns, classOf[Property])
+        val ownsSince = getLocalDate(res, S.OwnerFact.ownsSince)
+        val sharePercents = Option(res.getProperty(S.OwnerFact.sharePercents)).map(_.getInt)
+
+        Option(OwnerFact(
+          id, reportedBy, reportedAt,
+          media, articleUrl, articlePublishedAt,
+          s,
+          owns.get, ownsSince, sharePercents))
       case a =>
         log.warn(s"Can't build fact from resource $id with type $a and subject $subject")
         None

@@ -27,8 +27,8 @@ trait JenaSpecCommons {
   val SAMPLE_USER_NAME = "user1"
   val SAMPLE_USER = User("user1", "user1@a.b.com")
 
-  val sampleDateTime = DateTime.now()
-  val sampleDateTimeStr = ISODateTimeFormat.dateTime().print(sampleDateTime)
+  val sampleDateTimeStr = "2015-07-12T17:00Z"
+  val sampleDateTime = DateTime.parse(sampleDateTimeStr)
 
   val fixedClock = new Clock {
     override def now(): DateTime = sampleDateTime

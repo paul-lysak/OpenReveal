@@ -1,6 +1,8 @@
 package openreveal.schema
 
-import com.hp.hpl.jena.rdf.model.ModelFactory
+import com.hp.hpl.jena.rdf.model.{Resource, ModelFactory}
+import openreveal.model.Id
+import openreveal.{model => M}
 
 /**
  * Created by Paul Lysak on 03.06.15.
@@ -9,6 +11,10 @@ object OpenRevealSchema {
   val uri = "http://openreveal.org/schema/1.0/"
 
   private val m = ModelFactory.createDefaultModel()
+
+  trait SchemaType {
+    def a: Resource
+  }
 
   trait ReportedT {
     val reportedBy = m.createProperty(uri, "reportedBy")
@@ -23,7 +29,7 @@ object OpenRevealSchema {
 
   object Entity extends EntityT
 
-  object User extends EntityT {
+  object User extends EntityT with SchemaType {
     val a = m.createResource(uri + "User")
     val email = m.createProperty(uri, "email")
   }
@@ -56,7 +62,6 @@ object OpenRevealSchema {
   }
 
 
-
   trait FactT extends ReportedT {
     val subject = m.createProperty(uri, "subject")
     val articleUrl = m.createProperty(uri, "articleUrl")
@@ -66,14 +71,14 @@ object OpenRevealSchema {
 
   object Fact extends FactT
 
-  object PersonFact extends FactT {
+  object PersonFact extends FactT with SchemaType {
     val a = m.createResource(uri + "PersonFact")
 
     val citizenOf = m.createProperty(uri, "citizenOf")
     val livesIn = m.createProperty(uri, "livesIn")
   }
 
-  object OwnerFact extends FactT {
+  object OwnerFact extends FactT with SchemaType {
     val a = m.createResource(uri + "OwnerFact")
 
     val owns = m.createProperty(uri, "owns")
@@ -82,7 +87,7 @@ object OpenRevealSchema {
   }
 
 
-  object MemberFact extends FactT {
+  object MemberFact extends FactT with SchemaType {
     val a = m.createResource(uri + "MemberFact")
 
     val memberOf = m.createProperty(uri, "memberOf")
@@ -90,5 +95,9 @@ object OpenRevealSchema {
     val position = m.createProperty(uri, "position")
     val positionSince = m.createProperty(uri, "positionSince")
   }
+
+  val byClass: Map[Class[_ <: Id], SchemaType] = Map(
+    classOf[M.OwnerFact] -> OwnerFact,
+    classOf[M.PersonFact] -> PersonFact)
 
 }

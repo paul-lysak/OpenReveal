@@ -1,4 +1,7 @@
-- Querying: QueryEndpoint: API, tests, impl.
+- Querying API
+    - multi-level fact chains
+    - more fact types
+    - finding path between 2 entities
 
 - remove/update facts
 

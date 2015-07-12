@@ -16,7 +16,7 @@ class QueryEndpointSpec extends FlatSpec with Matchers with JenaSpecCommons {
     val c1 = GenericCompany("c1", "Company One", "UA")
     val m1 = Media("m1", "Media One", "UA")
 
-    val articleDateTime = DateTime.parse("2015-06-01T10:00:00Z")
+    val articleDateTime = DateTime.parse("2015-06-01T10:00:00Z").toDateTimeISO
 
     val fOwns1 = OwnerFact("fOwns1", SAMPLE_USER, sampleDateTime,
       None, "news.site.com/article1", None,
@@ -38,10 +38,10 @@ class QueryEndpointSpec extends FlatSpec with Matchers with JenaSpecCommons {
     storage.saveFact(fOwns1)
     storage.saveFact(fPerson1)
 
-    qEndpoint.discoverRelations(p1, Set(classOf[OwnerFact], classOf[PersonFact])) shouldBe (Set(p1, c1), Set(fPerson1, fOwns1))
-    qEndpoint.discoverRelations(p1, Set(classOf[OwnerFact])) shouldBe (Set(p1, c1), Set(fOwns1))
-    qEndpoint.discoverRelations(p1, Set(classOf[PersonFact])) shouldBe (Set(p1), Set(fPerson1))
     qEndpoint.discoverRelations(p1, Set()) shouldBe (Set(p1), Set())
+    qEndpoint.discoverRelations(p1, Set(classOf[PersonFact])) shouldEqual (Set(p1), Set(fPerson1))
+    qEndpoint.discoverRelations(p1, Set(classOf[OwnerFact])) shouldBe (Set(p1, c1), Set(fOwns1))
+    qEndpoint.discoverRelations(p1, Set(classOf[OwnerFact], classOf[PersonFact])) shouldBe (Set(p1, c1), Set(fPerson1, fOwns1))
   }
 
 
